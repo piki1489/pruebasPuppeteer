@@ -1,28 +1,38 @@
-import puppeteer from 'puppeteer';
-import dotenv from 'dotenv';
+import puppeteer from 'puppeteer-core';
 import chromium from 'chrome-aws-lambda';
+import dotenv from 'dotenv';
 
 dotenv.config();
 
 export async function handler(event, context) {
     console.log("🔄 Ejecutando Puppeteer...");
 
-    const printers = process.env.PRINTERS.split(',').map(printer => {
+    const printers = process.env.PRINTERS?.split(',').map(printer => {
         const [ip, name] = printer.split(':');
         return { ip, name };
-    });
+    }) || [];
+
+    if (printers.length === 0) {
+        console.error("⚠️ No se encontraron impresoras en las variables de entorno.");
+        return {
+            statusCode: 400,
+            body: JSON.stringify({ error: "No se configuraron impresoras en .env" }),
+        };
+    }
 
     async function getDataFromWebPage(ip, name) {
         console.log(`🔍 Accediendo a ${name} (${ip})...`);
-        const browser = await puppeteer.launch({
-            args: chromium.args,
-            defaultViewport: chromium.defaultViewport,
-            executablePath: await chromium.executablePath(),
-            headless: chromium.headless,
-        });
-        const page = await browser.newPage();
 
+        let browser = null;
         try {
+            browser = await puppeteer.launch({
+                args: chromium.args,
+                defaultViewport: chromium.defaultViewport,
+                executablePath: await chromium.executablePath() || '/usr/bin/chromium-browser',
+                headless: chromium.headless,
+            });
+
+            const page = await browser.newPage();
             await page.goto(`http://${ip}/?MAIN=TOPACCESS`, { waitUntil: 'networkidle2' });
 
             const frames = page.frames();
@@ -30,7 +40,6 @@ export async function handler(event, context) {
 
             if (!contentsFrame) {
                 console.error(`❌ No se encontró el frame 'contents' en ${name} (${ip})`);
-                await browser.close();
                 return null;
             }
 
@@ -46,13 +55,13 @@ export async function handler(event, context) {
             }));
 
             console.log(`📊 Datos obtenidos para ${name} (${ip}):`, result);
-            await browser.close();
             return { name, ip, ...result };
 
         } catch (error) {
             console.error(`❌ Error en ${name} (${ip}):`, error.message);
-            await browser.close();
             return null;
+        } finally {
+            if (browser) await browser.close();
         }
     }
 
