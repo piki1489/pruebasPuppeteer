@@ -1,5 +1,6 @@
 import puppeteer from 'puppeteer';
 import dotenv from 'dotenv';
+import chromium from 'chrome-aws-lambda';
 
 dotenv.config();
 
@@ -13,7 +14,12 @@ export async function handler(event, context) {
 
     async function getDataFromWebPage(ip, name) {
         console.log(`🔍 Accediendo a ${name} (${ip})...`);
-        const browser = await puppeteer.launch({ headless: true, defaultViewport: null, slowMo: 50 });
+        const browser = await puppeteer.launch({
+            args: chromium.args,
+            defaultViewport: chromium.defaultViewport,
+            executablePath: await chromium.executablePath(),
+            headless: chromium.headless,
+        });
         const page = await browser.newPage();
 
         try {
