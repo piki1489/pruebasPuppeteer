@@ -1,8 +1,6 @@
 import puppeteer from 'puppeteer-core';
 import chromium from 'chrome-aws-lambda';
 import dotenv from 'dotenv';
-import fs from 'fs'; // Para interactuar con el sistema de archivos
-import path from 'path';
 
 dotenv.config();
 
@@ -20,21 +18,6 @@ export async function handler(event, context) {
             statusCode: 400,
             body: JSON.stringify({ error: "No se configuraron impresoras en .env" }),
         };
-    }
-
-    // Ruta del archivo data.json
-    const dataFilePath = path.join(__dirname, 'data.json');
-
-    // Función para eliminar y crear un archivo nuevo con los datos
-    function writeDataToFile(data) {
-        fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2), 'utf-8');
-        console.log("📂 data.json actualizado");
-    }
-
-    // Eliminar el archivo data.json antes de escribirlo
-    if (fs.existsSync(dataFilePath)) {
-        fs.unlinkSync(dataFilePath);
-        console.log("🗑️ Se ha eliminado el archivo data.json antiguo");
     }
 
     async function getDataFromWebPage(ip, name) {
@@ -90,9 +73,6 @@ export async function handler(event, context) {
     }
 
     console.log("\n📋 **Datos recopilados con éxito**");
-
-    // Escribir los datos obtenidos en data.json
-    writeDataToFile(results);
 
     return {
         statusCode: 200,

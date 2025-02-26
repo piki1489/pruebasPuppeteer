@@ -77,10 +77,16 @@
     <script>
       async function fetchTonerData() {
         try {
-          // Cambiar la URL a 'data.json' para leer los datos directamente
-          const response = await fetch("./data.json");
+          // Llama a la función de Netlify para obtener los datos
+          const response = await fetch("/.netlify/functions/getToner");
+          if (!response.ok) {
+            throw new Error(
+              `Error al obtener los datos: ${response.statusText}`
+            );
+          }
+
           const data = await response.json();
-          console.log(data); // Aquí vemos qué datos se están recibiendo
+          console.log("Datos obtenidos:", data);
 
           const printerContainer = document.getElementById("printerContainer");
           printerContainer.innerHTML = "";
@@ -90,36 +96,25 @@
             return;
           }
 
-          // Iterar sobre los datos recibidos
+          // Muestra los datos en la página
           data.forEach((printer) => {
             const card = document.createElement("div");
             card.className = "printer-card";
-
-            // Añadir los datos de los tóneres al HTML
             card.innerHTML = `
-                        <h2>${printer.name} (${printer.ip})</h2>
-                        ${createProgressBar(
-                          "YellowToner",
-                          printer.YellowToner,
-                          "yellow"
-                        )}
-                        ${createProgressBar(
-                          "Magentatoner",
-                          printer.Magentatoner,
-                          "magenta"
-                        )}
-                        ${createProgressBar(
-                          "Cyantoner",
-                          printer.Cyantoner,
-                          "cyan"
-                        )}
-                        ${createProgressBar(
-                          "Blacktoner",
-                          printer.Blacktoner,
-                          "black"
-                        )}
-                    `;
-
+                <h2>${printer.name} (${printer.ip})</h2>
+                ${createProgressBar(
+                  "YellowToner",
+                  printer.YellowToner,
+                  "yellow"
+                )}
+                ${createProgressBar(
+                  "Magentatoner",
+                  printer.Magentatoner,
+                  "magenta"
+                )}
+                ${createProgressBar("Cyantoner", printer.Cyantoner, "cyan")}
+                ${createProgressBar("Blacktoner", printer.Blacktoner, "black")}
+            `;
             printerContainer.appendChild(card);
           });
         } catch (error) {
@@ -128,16 +123,15 @@
             "<p>Error al cargar los datos.</p>";
         }
       }
-
       function createProgressBar(label, value, color) {
-        const percentage = parseInt(value) || 0;
+        const percentage = Math.min(Math.max(parseInt(value) || 0, 0), 100); // Asegura que esté entre 0 y 100
         return `
-                <div class="progress-bar">
-                    <div class="progress ${color}" style="width: ${percentage}%; background-color: ${color};">
-                        ${value}%
-                    </div>
-                </div>
-            `;
+        <div class="progress-bar">
+            <div class="progress ${color}" style="width: ${percentage}%; background-color: ${color};">
+                ${value}%
+            </div>
+        </div>
+    `;
       }
 
       document.addEventListener("DOMContentLoaded", fetchTonerData);
