@@ -72,7 +72,7 @@ export async function handler(event, context) {
         if (data) results.push(data);
     }
 
-    console.log("\n📋 **Datos recopilados con éxito**");
+    console.log("\n📋 **Datos recopilados con éxito**", results);
 
     return {
         statusCode: 200,

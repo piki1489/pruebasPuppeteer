@@ -116,6 +116,7 @@
         preloader.classList.add("active");
 
         try {
+          console.log("🔄 Solicitando datos de tóner...");
           // Llama a la función de Netlify para obtener los datos
           const response = await fetch("/.netlify/functions/getToner");
           if (!response.ok) {
