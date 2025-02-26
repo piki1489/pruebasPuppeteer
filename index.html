@@ -76,39 +76,41 @@
     <div id="printerContainer" class="printer-container"></div>
 
     <script>
-        async function fetchTonerData() {
-            try {
-                const response = await fetch('/.netlify/functions/getToner'); // Llamada correcta a la función
-                const data = await response.json();
-    
-                const printerContainer = document.getElementById("printerContainer");
-                printerContainer.innerHTML = '';
-    
-                if (data.length === 0) {
-                    printerContainer.innerHTML = "<p>No hay datos disponibles</p>";
-                    return;
-                }
-    
-                data.forEach(printer => {
-                    const card = document.createElement("div");
-                    card.className = "printer-card";
-    
-                    card.innerHTML = `
-                        <h2>${printer.name} (${printer.ip})</h2>
-                        ${createProgressBar("YellowToner", printer.YellowToner, "yellow")}
-                        ${createProgressBar("Magentatoner", printer.Magentatoner, "magenta")}
-                        ${createProgressBar("Cyantoner", printer.Cyantoner, "cyan")}
-                        ${createProgressBar("Blacktoner", printer.Blacktoner, "black")}
-                    `;
-    
-                    printerContainer.appendChild(card);
-                });
-    
-            } catch (error) {
-                console.error("❌ Error al obtener los datos:", error);
-                document.getElementById("printerContainer").innerHTML = "<p>Error al cargar los datos.</p>";
-            }
+ async function fetchTonerData() {
+    try {
+        const response = await fetch('./.netlify/functions/getToner');
+        const data = await response.json();
+        console.log(data); // Aquí vemos qué datos se están recibiendo
+        
+        const printerContainer = document.getElementById("printerContainer");
+        printerContainer.innerHTML = '';
+
+        if (Array.isArray(data) && data.length === 0) {
+            printerContainer.innerHTML = "<p>No hay datos disponibles</p>";
+            return;
         }
+
+        data.forEach(printer => {
+            const card = document.createElement("div");
+            card.className = "printer-card";
+            
+            card.innerHTML = `
+                <h2>${printer.name} (${printer.ip})</h2>
+                ${createProgressBar("YellowToner", printer.YellowToner, "yellow")}
+                ${createProgressBar("Magentatoner", printer.Magentatoner, "magenta")}
+                ${createProgressBar("Cyantoner", printer.Cyantoner, "cyan")}
+                ${createProgressBar("Blacktoner", printer.Blacktoner, "black")}
+            `;
+            
+            printerContainer.appendChild(card);
+        });
+
+    } catch (error) {
+        console.error("❌ Error al obtener los datos:", error);
+        document.getElementById("printerContainer").innerHTML = "<p>Error al cargar los datos.</p>";
+    }
+}
+
     
         function createProgressBar(label, value, color) {
             const percentage = parseInt(value.replace('%', '')) || 0;
