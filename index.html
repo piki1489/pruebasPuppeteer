@@ -67,6 +67,38 @@
       .black {
         background-color: #333;
       }
+
+      .preloader {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.8);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .preloader.active {
+        display: flex;
+      }
+
+      .spinner {
+        border: 4px solid rgba(0, 0, 0, 0.1);
+        border-left-color: #0e3f89;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
     </style>
   </head>
   <body>
@@ -74,8 +106,15 @@
 
     <div id="printerContainer" class="printer-container"></div>
 
+    <div id="preloader" class="preloader">
+      <div class="spinner"></div>
+    </div>
+
     <script>
       async function fetchTonerData() {
+        const preloader = document.getElementById("preloader");
+        preloader.classList.add("active");
+
         try {
           // Llama a la función de Netlify para obtener los datos
           const response = await fetch("/.netlify/functions/getToner");
@@ -121,8 +160,11 @@
           console.error("❌ Error al obtener los datos:", error);
           document.getElementById("printerContainer").innerHTML =
             "<p>Error al cargar los datos.</p>";
+        } finally {
+          preloader.classList.remove("active");
         }
       }
+
       function createProgressBar(label, value, color) {
         const percentage = Math.min(Math.max(parseInt(value) || 0, 0), 100); // Asegura que esté entre 0 y 100
         return `
