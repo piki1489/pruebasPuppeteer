@@ -78,7 +78,7 @@
     <script>
         async function fetchTonerData() {
             try {
-                const response = await fetch('/.netlify/functions/getToner');
+                const response = await fetch('./index.js');
                 const data = await response.json();
 
                 const printerContainer = document.getElementById("printerContainer");
